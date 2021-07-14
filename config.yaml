@@ -1,0 +1,15 @@
+##Software to install
+Minimap2: /usr/local/bin/minimap2
+TideHunter: /home/gmoney/miniconda3/bin/TideHunter
+Porechop: /home/gmoney/repos/Porechop
+samtools: /home/gmoney/miniconda3/bin/samtools
+bedtools: /home/gmoney/miniconda3/bin/bedtools
+##References
+#Must download
+starts: telo_start_position_WT_2kb.txt
+coverage: 2
+ref: /atium/Data/projects/sam_telo_AG/Num2kbtelo11RsacCer3.fa
+outdir: /atium/Data/projects/sam_telo_AG/snakemake_out
+reads: /atium/Data/projects/sam_telo_AG/210220barcode10.fastq
+telo_seq: GTGTGTGGGTGTG 
+threads: 48

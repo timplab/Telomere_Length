@@ -1,0 +1,99 @@
+#!/home/gmoney/.local/bin/snakemake -s
+"""
+This Snakemake pipeline is intended to absorb HG002 pangenome sequencing data and methylation call it on AWS.  Based on Ariel's original snakemake
+    * Aligns to the reference genome with winnowmap
+    * Indexes methylation with f5c
+    * Calls methylation with Nanopolish
+    * Formats methylation calls with nanopore-methylation-utilities
+    fast5 directory and fastq file must have same basename, summary file not required 
+"""
+configfile: "config.yaml"
+###-------input paths/files -------###
+
+import glob
+import re
+
+##WT - note check this to figure out parallelization properly
+##cores=config["cores"]
+
+##Software config
+#minimap2 = config["minimap2"]
+#Tidehunter = config["Tidehunter"]
+#Porechop = config["Porechop"]
+
+##Pass in directory we are working in --config base=dir - default is /data
+outdir=config["outdir"]
+ref = config["ref"]
+   
+###--------------###
+
+# ###------- Pipeline Rules -------#####
+
+
+rule all:
+    input:
+        expand( outdir + "/telomere_lengths.tsv")
+
+rule Tidehunter:
+    input:
+        reads = config["reads"]
+    output:
+        out = outdir + "/cons.out"
+    params:
+        telo=config["telo_seq"],
+        threads = config["threads"],
+        tidehunter = config["TideHunter"]
+    message: """Running Tidehunter"""
+    run:
+        shell("{params.tidehunter} -t {params.threads} -f 2 {input.reads} > {output.out}")
+
+rule filter_fq:
+    input:
+        cons=rules.Tidehunter.output, 
+        reads = config["reads"]
+    params:
+        telo = config["telo_seq"]
+    output:
+        fq = outdir + "/tailed.fastq"
+    message: """Filtering Tidehunter output"""
+    run:
+        shell("./filter.sh -i {input.cons} -r {input.reads} -s {params.telo} > {output.fq}")
+
+rule Porechop:
+    input:
+        fastq=rules.filter_fq.output
+    params:
+        porechop = config["Porechop"]
+    output:
+        chopfq = outdir + "/chopped.fastq"
+    message: """Replacing adapters.py and running Porechop"""
+    run:
+        shell("cp adapters.py {params.porechop}/porechop"),
+        shell("{params.porechop}/porechop-runner.py -i {input.fastq} -o {output.chopfq}")
+rule Minimap:
+    input:
+        fastq=rules.Porechop.output
+    params:
+        minimap = config["Minimap2"],
+        samtools = config["samtools"],
+        ref = config["ref"],
+        bedtools = config["bedtools"]
+    output:
+        bam = outdir + "/chopped.primary.bam",
+        bed = outdir + "/chopped.primary.bed"
+    message: """Mapping chopped reads with Minimap2"""
+    run:
+        shell("{params.minimap} -ax map-ont {params.ref} {input.fastq} | {params.samtools} view -Sbh -F 2048 -F 256 | {params.samtools} sort -o {output.bam}"),
+        shell("{params.samtools} index {output.bam}"),
+        shell("{params.bedtools} bamtobed -i {output.bam} > {output.bed}")
+rule Calculate_length:
+    input:
+        bed=rules.Minimap.output.bed,
+        starts = config["starts"]
+    params:
+        cov = config["coverage"]
+    output:
+        out = outdir + "/telomere_lengths.tsv"
+    message: """Calculating telomere lengths"""
+    run:
+        shell("./Telo_length_AG.R -c {params.cov} -s {input.starts} -i {input.bed} -o {output.out}")
