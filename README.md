@@ -21,4 +21,6 @@ Edit paths in `congfig.yaml` to the location of software installs and input file
 
 ```
 snakemake --snakefile run_telo.snk --cores 8
+
 ```
+Additionally, all scripts can run as stand alone executeables (filter.sh and telo_length.R) that take user input from TideHunter and minimap2. Run with -h for instructions.
