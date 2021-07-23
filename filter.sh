@@ -15,6 +15,10 @@ do
       sequence=$2
       shift 2
       ;;
+    -p | --seqkit_path ) #telomere sequence (optional : defaults to GTGTG)
+      seqkit_path=$2
+      shift 2
+      ;;
     -h | --help ) # help message
       helpmsg=1
       shift 1
@@ -38,6 +42,7 @@ if [ ! -z $helpmsg ];then
   ;-i/--in;;Tidehunter input file
   ;-r/--reads;;Fastq
   ;-s/--sequence;;Telomere sequence (default GTGTGTGGGTGTG)
+  ;-p/--seqkit_path;;path to seqkit executable
   ;-h/--help;;show help message and exit"|\
     tr ";" "\t"
   echo $errormsg
@@ -59,9 +64,9 @@ awk 'NR==FNR{a[$0];next}$1 in a {x=NR+3}(NR<=x){print} ' ${out}/ID.tmp ${reads} 
 ##Filter out reads < 5kb
 awk 'BEGIN {FS = "\t" ; OFS = "\n"} {header = $0 ; getline seq ; getline qheader ; getline qseq ; if (length(seq) >= 5000) {print header, seq, qheader, qseq}}' < ${out}/telomere.fastq > ${out}/filtered.fastq
 ##Filter for reads with more than 10 As in the last 100 bp
-seqkit grep -s -R -100:-1 -r -p AAAAAAAAAA ${out}/filtered.fastq > ${out}/As.fastq
+$seqkit_path grep -s -R -100:-1 -r -p AAAAAAAAAA ${out}/filtered.fastq > ${out}/As.fastq
 ##Filter for reads with more then 10 Ts in the first 100 bp
-seqkit grep -s -R 1:100 -r -p TTTTTTTTTT ${out}/filtered.fastq > ${out}/Ts.fastq
+$seqkit_path grep -s -R 1:100 -r -p TTTTTTTTTT ${out}/filtered.fastq > ${out}/Ts.fastq
 ##Combine the reads that are tailed
 cat ${out}/As.fastq ${out}/Ts.fastq
 rm -r $out

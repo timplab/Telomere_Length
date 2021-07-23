@@ -52,12 +52,13 @@ rule filter_fq:
         cons=rules.Tidehunter.output, 
         reads = config["reads"]
     params:
-        telo = config["telo_seq"]
+        telo = config["telo_seq"],
+        seqpath = config["seqkit"]
     output:
         fq = outdir + "/tailed.fastq"
     message: """Filtering Tidehunter output"""
     run:
-        shell("./filter.sh -i {input.cons} -r {input.reads} -s {params.telo} > {output.fq}")
+        shell("./filter.sh -i {input.cons} -r {input.reads} -s {params.telo} -p {params.seqpath} > {output.fq}")
 
 rule Porechop:
     input:

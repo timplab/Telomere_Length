@@ -4,6 +4,7 @@ TideHunter: /home/gmoney/miniconda3/bin/TideHunter
 Porechop: /home/gmoney/repos/Porechop
 samtools: /home/gmoney/miniconda3/bin/samtools
 bedtools: /home/gmoney/miniconda3/bin/bedtools
+seqkit: /usr/local/bin/seqkit
 ##References
 #Must download
 starts: telo_start_position_WT_2kb.txt
