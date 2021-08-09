@@ -60,9 +60,9 @@ grep $sequence $in | cut -f1 | sed 's/^/@/' > ${out}/ID.tmp
 #echo $num reads with $sequence
 
 ##Generate a filtered .fastq with only reads with telomere
-awk 'NR==FNR{a[$0];next}$1 in a {x=NR+3}(NR<=x){print} ' ${out}/ID.tmp ${reads} > ${out}/telomere.fastq
+awk 'NR==FNR{a[$0];next}$1 in a {x=NR+3}(NR<=x){print} ' ${out}/ID.tmp ${reads} > ${out}/filtered.fastq
 ##Filter out reads < 5kb
-awk 'BEGIN {FS = "\t" ; OFS = "\n"} {header = $0 ; getline seq ; getline qheader ; getline qseq ; if (length(seq) >= 5000) {print header, seq, qheader, qseq}}' < ${out}/telomere.fastq > ${out}/filtered.fastq
+#awk 'BEGIN {FS = "\t" ; OFS = "\n"} {header = $0 ; getline seq ; getline qheader ; getline qseq ; if (length(seq) >= 5000) {print header, seq, qheader, qseq}}' < ${out}/telomere.fastq > ${out}/filtered.fastq
 ##Filter for reads with more than 10 As in the last 100 bp
 $seqkit_path grep -s -R -100:-1 -r -p AAAAAAAAAA ${out}/filtered.fastq > ${out}/As.fastq
 ##Filter for reads with more then 10 Ts in the first 100 bp

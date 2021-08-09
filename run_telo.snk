@@ -84,7 +84,7 @@ rule Minimap:
         bed = outdir + "/chopped.primary.bed"
     message: """Mapping chopped reads with Minimap2"""
     run:
-        shell("{params.minimap} -ax map-ont {params.ref} {input.fastq} | {params.samtools} view -Sbh -F 2048 -F 256 | {params.samtools} sort -o {output.bam}"),
+        shell("{params.minimap} -ax map-ont {params.ref} {input.fastq} | {params.samtools} view -Sbh -bq 20 -F 2048 -F 256 | {params.samtools} sort -o {output.bam}"),
         shell("{params.samtools} index {output.bam}"),
         shell("{params.bedtools} bamtobed -i {output.bam} > {output.bed}")
 rule Calculate_length:
